@@ -6,8 +6,8 @@
   "module":"./dist/index.mjs",
   "types":"./dist/index.d.ts",
   "scripts": {
-    "build":"tsup",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsup",
+    "dev": "tsup --watch"
   },
   "exports":{
     ".":{
@@ -19,12 +19,28 @@
     "require":"./dist/index.cjs"
   }
 },
-  "files":["dist"],
+  "files":[
+    "dist",
+    "src/index.ts",
+    "src/lib"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "es-toolkit": "^1.39.8",
+    "ky": "^1.8.2"
+  },
   "devDependencies": {
+    "@changesets/cli": "^2.29.5",
+    "@types/node": "^24.2.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.7",
+    "@typescript-eslint/parser": "^5.59.7",
+    "auto-changelog": "^2.4.0",
+    "docsify-cli": "^4.4.4",
+    "google-auth-library": "^10.2.1",
     "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "varlock": "^0.0.7"
   }
 }
