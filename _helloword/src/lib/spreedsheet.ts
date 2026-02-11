@@ -75,7 +75,7 @@ async function getRequestAuthConfig(auth: GoogleApiAuth): Promise<{
  * Provides methods to interact with document metadata/settings, formatting, manage sheets, and acts as the main gateway to interacting with sheets and data that the document contains.q
  *
  */
-export class GoogleSpreadsheet {
+export class MyGoogleSpreadsheetv1 {
   readonly spreadsheetId: string;
 
   public auth: GoogleApiAuth;
@@ -192,7 +192,7 @@ export class GoogleSpreadsheet {
   }
 
   /** @internal */
-  async _makeSingleUpdateRequest(requestType: string, requestParams: any) {
+  /*async _makeSingleUpdateRequest(requestType: string, requestParams: any) {
     const response = await this.sheetsApi.post(':batchUpdate', {
       json: {
         requests: [{ [requestType]: requestParams }],
@@ -208,11 +208,11 @@ export class GoogleSpreadsheet {
     // console.log('API RESPONSE', response.data.replies[0][requestType]);
     return data.replies[0][requestType];
   }
-
+*/
   // TODO: review these types
   // currently only used in batching cell updates
   /** @internal */
-  async _makeBatchUpdateRequest(requests: any[], responseRanges?: string | string[]) {
+  /*async _makeBatchUpdateRequest(requests: any[], responseRanges?: string | string[]) {
     // this is used for updating batches of cells
     const response = await this.sheetsApi.post(':batchUpdate', {
       json: {
@@ -228,7 +228,7 @@ export class GoogleSpreadsheet {
     const data = await response.json<any>();
     this._updateRawProperties(data.updatedSpreadsheet.properties);
     _.each(data.updatedSpreadsheet.sheets, (s: any) => this._updateOrCreateSheet(s));
-  }
+  }*/
 
   /** @internal */
   _ensureInfoLoaded() {
@@ -269,12 +269,12 @@ export class GoogleSpreadsheet {
    * update spreadsheet properties
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#SpreadsheetProperties
    * */
-  async updateProperties(properties: Partial<SpreadsheetProperties>) {
+  /*async updateProperties(properties: Partial<SpreadsheetProperties>) {
     await this._makeSingleUpdateRequest('updateSpreadsheetProperties', {
       properties,
       fields: getFieldMask(properties),
     });
-  }
+  }*/
 
   // BASIC INFO ////////////////////////////////////////////////////////////////////////////////////
   async loadInfo(includeCells = false) {
@@ -300,26 +300,26 @@ export class GoogleSpreadsheet {
     return _.values(this._rawSheets).length;
   }
 
-  get sheetsById(): Record<WorksheetId, GoogleSpreadsheetWorksheet> {
+  /*get sheetsById(): Record<WorksheetId, GoogleSpreadsheetWorksheet> {
     this._ensureInfoLoaded();
     return this._rawSheets;
-  }
+  }*/
 
-  get sheetsByIndex(): GoogleSpreadsheetWorksheet[] {
+  /*get sheetsByIndex(): GoogleSpreadsheetWorksheet[] {
     this._ensureInfoLoaded();
     return _.sortBy(this._rawSheets, 'index');
-  }
+  }*/
 
-  get sheetsByTitle(): Record<string, GoogleSpreadsheetWorksheet> {
+  /*get sheetsByTitle(): Record<string, GoogleSpreadsheetWorksheet> {
     this._ensureInfoLoaded();
     return _.keyBy(this._rawSheets, 'title');
-  }
+  }*/
 
   /**
    * Add new worksheet to document
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#AddSheetRequest
    * */
-  async addSheet(
+  /*async addSheet(
     properties: Partial<
     RecursivePartial<WorksheetProperties>
     & {
@@ -340,16 +340,16 @@ export class GoogleSpreadsheet {
     }
 
     return newSheet;
-  }
+  }*/
 
   /**
    * delete a worksheet
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#DeleteSheetRequest
    * */
-  async deleteSheet(sheetId: WorksheetId) {
+  /*async deleteSheet(sheetId: WorksheetId) {
     await this._makeSingleUpdateRequest('deleteSheet', { sheetId });
     delete this._rawSheets[sheetId];
-  }
+  }*/
 
   // NAMED RANGES //////////////////////////////////////////////////////////////////////////////////
 
@@ -357,12 +357,12 @@ export class GoogleSpreadsheet {
    * create a new named range
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#AddNamedRangeRequest
    */
-  async addNamedRange(
-    /** name of new named range */
+  /*async addNamedRange(
+    // name of new named range 
     name: string,
-    /** GridRange object describing range */
+    // GridRange object describing range 
     range: GridRange,
-    /** id for named range (optional) */
+    // id for named range (optional) 
     namedRangeId?: string
   ) {
     // TODO: add named range to local cache
@@ -371,29 +371,29 @@ export class GoogleSpreadsheet {
       namedRangeId,
       range,
     });
-  }
+  }*/
 
   /**
    * delete a named range
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#DeleteNamedRangeRequest
    * */
-  async deleteNamedRange(
-    /** id of named range to delete */
+  /*async deleteNamedRange(
+    // id of named range to delete
     namedRangeId: NamedRangeId
   ) {
     // TODO: remove named range from local cache
     return this._makeSingleUpdateRequest('deleteNamedRange', { namedRangeId });
-  }
+  }*/
 
   // LOADING CELLS /////////////////////////////////////////////////////////////////////////////////
 
   /** fetch cell data into local cache */
-  async loadCells(
-    /**
-     * single filter or array of filters
-     * strings are treated as A1 ranges, objects are treated as GridRange objects
-     * pass nothing to fetch all cells
-     * */
+  /*async loadCells(
+    
+    // * single filter or array of filters
+    // * strings are treated as A1 ranges, objects are treated as GridRange objects
+    // * pass nothing to fetch all cells
+    // * 
     filters?: DataFilter | DataFilter[]
   ) {
     // TODO: make it support DeveloperMetadataLookup objects
@@ -445,7 +445,7 @@ export class GoogleSpreadsheet {
 
     const data = await result?.json<any>();
     _.each(data.sheets, (sheet: any) => { this._updateOrCreateSheet(sheet); });
-  }
+  }*/
 
   // EXPORTING /////////////////////////////////////////////////////////////
 
@@ -621,7 +621,7 @@ export class GoogleSpreadsheet {
 
   //
   // CREATE NEW DOC ////////////////////////////////////////////////////////////////////////////////
-  static async createNewSpreadsheetDocument(auth: GoogleApiAuth, properties?: Partial<SpreadsheetProperties>) {
+  /*static async createNewSpreadsheetDocument(auth: GoogleApiAuth, properties?: Partial<SpreadsheetProperties>) {
     // see updateProperties for more info about available properties
 
     if (getAuthMode(auth) === AUTH_MODES.API_KEY) {
@@ -648,5 +648,5 @@ export class GoogleSpreadsheet {
     _.each(data.sheets, (s: any) => newSpreadsheet._updateOrCreateSheet(s));
 
     return newSpreadsheet;
-  }
+  }*/
 }
