@@ -370,7 +370,9 @@ export type NumberFormat = {
 /** @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#GridProperties */
 export type WorksheetGridProperties = {
   rowCount: number;
+  rowCountWhithData:number;
   columnCount: number;
+  columnCountWhithData:number;
   frozenRowCount?: number;
   frozenColumnCount?: number;
   hideGridlines?: boolean;

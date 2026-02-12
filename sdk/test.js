@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import {MyGoogleSpreadsheetv1} from "jdtksheetgoogle"
+import {GoogleSpreadsheet} from "jdtksheetgoogle"
 import {JWT} from "google-auth-library"
 // Initialize auth - see https://theoephraim.github.io/node-google-spreadsheet/#/guides/authentication
 const serviceAccountAuth = new JWT({
@@ -10,7 +10,13 @@ const serviceAccountAuth = new JWT({
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
 
-  const doc = new MyGoogleSpreadsheetv1('171QJrvwwwfZ0HozPwTkF8fkz7Ufq7vgaD96uAmgTmK4', serviceAccountAuth);
+  const doc = new GoogleSpreadsheet('171QJrvwwwfZ0HozPwTkF8fkz7Ufq7vgaD96uAmgTmK4', serviceAccountAuth);
   await doc.loadInfo(); // loads document properties and worksheets
-  console.log(doc.title);
+  const sheet = doc.sheetsByTitle["CONFIGURACION"]; // or use `doc.sheetsById[id]` or `doc.sheetsByTitle[title]`
+/*sheet.getCellsInRange("D50:D63").then(cells => {
+    console.log(cells);
+})*/
+
+
+console.log(sheet.rowCount);
  

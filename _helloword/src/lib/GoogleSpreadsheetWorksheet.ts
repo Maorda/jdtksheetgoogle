@@ -7,7 +7,7 @@ import { GoogleSpreadsheetCell } from './GoogleSpreadsheetCell';
 import {
   getFieldMask, columnToLetter, letterToColumn, checkForDuplicateHeaders,
 } from './utils';
-import { MyGoogleSpreadsheetv1 } from './spreedsheet';
+import { GoogleSpreadsheet } from './GoogleSpreadsheet';
 import {
   A1Range, SpreadsheetId, DimensionRangeIndexes, WorksheetDimension, WorksheetId, WorksheetProperties, A1Address,
   RowIndex, ColumnIndex, DataFilterWithoutWorksheetId, DataFilter, GetValuesRequestOptions, WorksheetGridProperties,
@@ -40,7 +40,7 @@ export class GoogleSpreadsheetWorksheet {
 
   constructor(
     /** parent GoogleSpreadsheet instance */
-    readonly _spreadsheet: MyGoogleSpreadsheetv1,
+    readonly _spreadsheet: GoogleSpreadsheet,
     rawProperties: WorksheetProperties,
     rawCellData?: CellDataRange[]
   ) {
@@ -64,12 +64,12 @@ export class GoogleSpreadsheetWorksheet {
     this._fillCellData(rawCellData);
   }
 
-  /*async _makeSingleUpdateRequest(requestType: string, requestParams: any) {
+  async _makeSingleUpdateRequest(requestType: string, requestParams: any) {
     // pass the call up to the parent
     return this._spreadsheet._makeSingleUpdateRequest(requestType, {
       ...requestParams,
     });
-  }*/
+  }
 
   private _ensureInfoLoaded() {
     if (!this._rawProperties) {
@@ -151,6 +151,7 @@ export class GoogleSpreadsheetWorksheet {
   private _getProp<T extends keyof WorksheetProperties>(param: T): WorksheetProperties[T] {
     this._ensureInfoLoaded();
     // see note about asserting info loaded on GoogleSpreasheet
+    console.log(param)
     return this._rawProperties![param];
   }
   // eslint-disable-line no-unused-vars
@@ -162,7 +163,10 @@ export class GoogleSpreadsheetWorksheet {
   get title() { return this._getProp('title'); }
   get index() { return this._getProp('index'); }
   get sheetType() { return this._getProp('sheetType'); }
-  get gridProperties() { return this._getProp('gridProperties'); }
+  get gridProperties() { 
+    console.log(this._getProp('gridProperties')) 
+    return this._getProp('gridProperties');
+     }
   get hidden() { return this._getProp('hidden'); }
   get tabColor() { return this._getProp('tabColor'); }
   get rightToLeft() { return this._getProp('rightToLeft'); }
@@ -181,11 +185,17 @@ export class GoogleSpreadsheetWorksheet {
 
   get rowCount() {
     this._ensureInfoLoaded();
+    console.log(this.gridProperties.rowCount)
     return this.gridProperties.rowCount;
   }
   get columnCount() {
     this._ensureInfoLoaded();
     return this.gridProperties.columnCount;
+  }
+  get rowCountWithData() {
+    this._ensureInfoLoaded();
+    console.log(this.gridProperties.rowCountWhithData);
+    return this.gridProperties.rowCountWhithData;
   }
 
   get a1SheetName() { return `'${this.title.replace(/'/g, "''")}'`; }
@@ -201,10 +211,12 @@ export class GoogleSpreadsheetWorksheet {
   get cellStats() {
     let allCells = _.flatten(this._cells);
     allCells = _.compact(allCells);
+    
     return {
       nonEmpty: _.filter(allCells, (c) => c.value).length,
       loaded: allCells.length,
-      total: this.rowCount * this.columnCount,
+      totalGrid: this.rowCount * this.columnCount,
+      
     };
   }
 
@@ -228,7 +240,7 @@ export class GoogleSpreadsheetWorksheet {
     return this._cells[rowIndex][columnIndex];
   }
 
-  /*async loadCells(sheetFilters?: DataFilterWithoutWorksheetId | DataFilterWithoutWorksheetId[]) {
+  async loadCells(sheetFilters?: DataFilterWithoutWorksheetId | DataFilterWithoutWorksheetId[]) {
     // load the whole sheet
     if (!sheetFilters) return this._spreadsheet.loadCells(this.a1SheetName);
 
@@ -253,17 +265,17 @@ export class GoogleSpreadsheetWorksheet {
       throw new Error('Each filter must be a A1 range string or gridrange object');
     });
     return this._spreadsheet.loadCells(filtersArrayWithSheetId);
-  }*/
+  }
 
-  /*async saveUpdatedCells() {
+  async saveUpdatedCells() {
     const cellsToSave = _.filter(_.flatten(this._cells), { _isDirty: true });
     if (cellsToSave.length) {
       await this.saveCells(cellsToSave);
     }
     // TODO: do we want to return stats? or the cells that got updated?
-  }*/
+  }
 
-  /*async saveCells(cellsToUpdate: GoogleSpreadsheetCell[]) {
+  async saveCells(cellsToUpdate: GoogleSpreadsheetCell[]) {
     // we send an individual "updateCells" request for each cell
     // because the fields that are udpated for each group are the same
     // and we dont want to accidentally overwrite something
@@ -277,7 +289,7 @@ export class GoogleSpreadsheetWorksheet {
     }
 
     await this._spreadsheet._makeBatchUpdateRequest(requests, responseRanges);
-  }*/
+  }
 
   // SAVING THIS FOR FUTURE USE
   // puts the cells that need updating into batches
@@ -558,8 +570,8 @@ export class GoogleSpreadsheetWorksheet {
   }
 
   // BASIC PROPS ///////////////////////////////////////////////////////////////////////////////////
-  /* @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#UpdateSheetPropertiesRequest */
-  /*async updateProperties(properties: Partial<Omit<WorksheetProperties, 'sheetId'>>) {
+  /** @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#UpdateSheetPropertiesRequest */
+  async updateProperties(properties: Partial<Omit<WorksheetProperties, 'sheetId'>>) {
     // Request type = `updateSheetProperties`
 
     return this._makeSingleUpdateRequest('updateSheetProperties', {
@@ -569,25 +581,25 @@ export class GoogleSpreadsheetWorksheet {
       },
       fields: getFieldMask(properties),
     });
-  }*/
+  }
 
   /**
    * passes through the call to updateProperties to update only the gridProperties object
    */
-  /*async updateGridProperties(gridProperties: WorksheetGridProperties) {
+  async updateGridProperties(gridProperties: WorksheetGridProperties) {
     return this.updateProperties({ gridProperties });
-  }*/
+  }
 
   /** resize, internally just calls updateGridProperties */
-  /*async resize(gridProperties: Pick<WorksheetGridProperties, 'rowCount' | 'columnCount'>) {
+  async resize(gridProperties: Pick<WorksheetGridProperties, 'rowCount' | 'columnCount' | 'rowCountWhithData' | 'columnCountWhithData'>) {
     return this.updateGridProperties(gridProperties);
-  }*/
+  }
 
   /**
    *
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#updatedimensionpropertiesrequest
    */
-  /*async updateDimensionProperties(
+  async updateDimensionProperties(
     columnsOrRows: WorksheetDimension,
     properties: WorksheetDimensionProperties,
     bounds: Partial<DimensionRangeIndexes>
@@ -605,7 +617,7 @@ export class GoogleSpreadsheetWorksheet {
       properties,
       fields: getFieldMask(properties as any),
     });
-  }*/
+  }
 
   // OTHER /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -669,22 +681,22 @@ export class GoogleSpreadsheetWorksheet {
    * Merges all cells in the range
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#MergeCellsRequest
    */
-  /*async mergeCells(range: GridRangeWithOptionalWorksheetId, mergeType = 'MERGE_ALL') {
+  async mergeCells(range: GridRangeWithOptionalWorksheetId, mergeType = 'MERGE_ALL') {
     await this._makeSingleUpdateRequest('mergeCells', {
       mergeType,
       range: this._addSheetIdToRange(range),
     });
-  }*/
+  }
 
   /**
    * Unmerges cells in the given range
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#UnmergeCellsRequest
    */
-  /*async unmergeCells(range: GridRangeWithOptionalWorksheetId) {
+  async unmergeCells(range: GridRangeWithOptionalWorksheetId) {
     await this._makeSingleUpdateRequest('unmergeCells', {
       range: this._addSheetIdToRange(range),
     });
-  }*/
+  }
 
   async updateBorders() {
     // Request type = `updateBorders`
@@ -730,7 +742,7 @@ export class GoogleSpreadsheetWorksheet {
    * Duplicate worksheet within the document
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#DuplicateSheetRequest
    */
-  /*async duplicate(
+  async duplicate(
     options?: {
       id?: WorksheetId,
       title?: string,
@@ -745,7 +757,7 @@ export class GoogleSpreadsheetWorksheet {
     });
     const newSheetId = response.properties.sheetId;
     return this._spreadsheet.sheetsById[newSheetId];
-  }*/
+  }
 
   async findReplace() {
     // Request type = `findReplace`
@@ -756,7 +768,7 @@ export class GoogleSpreadsheetWorksheet {
    * Inserts rows or columns at a particular index
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#InsertDimensionRequest
    */
-  /*async insertDimension(
+  async insertDimension(
     columnsOrRows: WorksheetDimension,
     rangeIndexes: DimensionRangeIndexes,
     inheritFromBefore?: boolean
@@ -786,7 +798,7 @@ export class GoogleSpreadsheetWorksheet {
       },
       inheritFromBefore,
     });
-  }*/
+  }
 
   async insertRange() {
     // Request type = `insertRange`
@@ -852,9 +864,9 @@ export class GoogleSpreadsheetWorksheet {
    * Sets (or unsets) a data validation rule to every cell in the range
    * @see https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/request#SetDataValidationRequest
    */
-  /*async setDataValidation(
+  async setDataValidation(
     range: GridRangeWithOptionalWorksheetId,
-    // data validation rule object, or set to false to clear an existing rule 
+    /** data validation rule object, or set to false to clear an existing rule */
     rule: DataValidationRule | false
   ) {
     return this._makeSingleUpdateRequest('setDataValidation', {
@@ -864,7 +876,7 @@ export class GoogleSpreadsheetWorksheet {
       },
       ...rule && { rule },
     });
-  }*/
+  }
 
   async setBasicFilter() {
     // Request type = `setBasicFilter`
@@ -972,9 +984,9 @@ export class GoogleSpreadsheetWorksheet {
   }
 
   /** delete this worksheet */
-  /*async delete() {
+  async delete() {
     return this._spreadsheet.deleteSheet(this.sheetId);
-  }*/
+  }
 
   /**
    * copies this worksheet into another document/spreadsheet
